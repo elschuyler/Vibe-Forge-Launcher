@@ -1,7 +1,6 @@
 package com.vibeforge.launcher.ui
 
 import android.content.Intent
-import android.content.pm.ResolveInfo
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -38,7 +37,7 @@ class LauncherActivity : AppCompatActivity() {
 
         recyclerView = findViewById(R.id.appsRecyclerView)
         recyclerView.layoutManager = GridLayoutManager(this, 4)
-        
+
         loadApps()
     }
 
@@ -47,7 +46,7 @@ class LauncherActivity : AppCompatActivity() {
             val pm = packageManager
             val mainIntent = Intent(Intent.ACTION_MAIN, null)
             mainIntent.addCategory(Intent.CATEGORY_LAUNCHER)
-            
+
             val resolvedApps = pm.queryIntentActivities(mainIntent, 0)
             val apps = resolvedApps.map { resolveInfo ->
                 AppModel(
@@ -61,12 +60,12 @@ class LauncherActivity : AppCompatActivity() {
             withContext(Dispatchers.Main) {
                 appsList.clear()
                 appsList.addAll(apps)
-                recyclerView.adapter = AppAdapter(appsList)
+                recyclerView.adapter = AppAdapter(appsList, this@LauncherActivity)
             }
         }
     }
 
-    private fun showContextMenu(app: AppModel) {
+    internal fun showContextMenu(app: AppModel) {
         val options = arrayOf(
             if (app.isLocked) "Unlock App" else "Lock App",
             "App Info",
@@ -100,42 +99,46 @@ class LauncherActivity : AppCompatActivity() {
         }
         startActivity(intent)
     }
+}
 
-    inner class AppAdapter(private val apps: List<AppModel>) : RecyclerView.Adapter<AppAdapter.ViewHolder>() {
-        class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-            val icon: ImageView = view.findViewById(R.id.appIcon)
-            val label: TextView = view.findViewById(R.id.appLabel)
-            val lockStatus: ImageView = view.findViewById(R.id.lockStatus)
-        }
+class AppViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+    val icon: ImageView = view.findViewById(R.id.appIcon)
+    val label: TextView = view.findViewById(R.id.appLabel)
+    val lockStatus: ImageView = view.findViewById(R.id.lockStatus)
+}
 
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-            val view = LayoutInflater.from(parent.context).inflate(R.layout.item_app, parent, false)
-            return ViewHolder(view)
-        }
+class AppAdapter(
+    private val apps: List<AppModel>,
+    private val activity: LauncherActivity
+) : RecyclerView.Adapter<AppViewHolder>() {
 
-        override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-            val app = apps[position]
-            holder.label.text = app.label
-            holder.icon.setImageDrawable(app.icon)
-            holder.lockStatus.visibility = if (app.isLocked) View.VISIBLE else View.GONE
-            
-            holder.itemView.setOnClickListener {
-                if (app.isLocked) {
-                    val intent = Intent(this@LauncherActivity, BiometricLockActivity::class.java)
-                    intent.putExtra("packageName", app.packageName)
-                    startActivity(intent)
-                } else {
-                    val intent = packageManager.getLaunchIntentForPackage(app.packageName)
-                    if (intent != null) startActivity(intent)
-                }
-            }
-
-            holder.itemView.setOnLongClickListener {
-                showContextMenu(app)
-                true
-            }
-        }
-
-        override fun getItemCount() = apps.size
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AppViewHolder {
+        val view = LayoutInflater.from(parent.context).inflate(R.layout.item_app, parent, false)
+        return AppViewHolder(view)
     }
+
+    override fun onBindViewHolder(holder: AppViewHolder, position: Int) {
+        val app = apps[position]
+        holder.label.text = app.label
+        holder.icon.setImageDrawable(app.icon)
+        holder.lockStatus.visibility = if (app.isLocked) View.VISIBLE else View.GONE
+
+        holder.itemView.setOnClickListener {
+            if (app.isLocked) {
+                val intent = Intent(activity, BiometricLockActivity::class.java)
+                intent.putExtra("packageName", app.packageName)
+                activity.startActivity(intent)
+            } else {
+                val intent = activity.packageManager.getLaunchIntentForPackage(app.packageName)
+                if (intent != null) activity.startActivity(intent)
+            }
+        }
+
+        holder.itemView.setOnLongClickListener {
+            activity.showContextMenu(app)
+            true
+        }
+    }
+
+    override fun getItemCount() = apps.size
 }
