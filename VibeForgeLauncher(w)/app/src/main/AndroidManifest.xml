@@ -1,43 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools">
-
-    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" tools:ignore="QueryAllPackagesPermission" />
-    <uses-permission android:name="android.permission.USE_BIOMETRIC" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
-
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    
+    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
+    
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
-        android:label="@string/app_name"
-        android:roundIcon="@mipmap/ic_launcher_round"
-        android:supportsRtl="true"
-        android:theme="@style/Theme.Vibeforge">
-
+        android:label="VibeForge Launcher"
+        android:theme="@style/Theme.AppCompat">
+        
+        <!-- LAUNCHER - Makes it appear in app drawer -->
         <activity
-            android:name=".ui.LauncherActivity"
+            android:name=".LauncherActivity"
             android:exported="true"
             android:launchMode="singleTask"
-            android:clearTaskOnLaunch="true"
-            android:stateNotNeeded="true"
-            android:windowSoftInputMode="adjustPan">
+            android:theme="@style/Theme.AppCompat.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
                 <category android:name="android.intent.category.HOME" />
                 <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
-        <activity
-            android:name=".ui.PluginsActivity"
-            android:label="Plugin Dashboard"
-            android:theme="@style/Theme.Vibeforge.NoActionBar" />
-
-        <activity
-            android:name=".ui.BiometricLockActivity"
-            android:theme="@style/Theme.AppCompat.Translucent" />
-
+        
     </application>
 </manifest>
