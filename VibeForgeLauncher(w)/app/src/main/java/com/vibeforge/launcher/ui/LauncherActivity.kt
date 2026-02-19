@@ -8,16 +8,12 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.vibeforge.launcher.R
 import com.vibeforge.launcher.core.AppLockManager
 import com.vibeforge.launcher.model.AppModel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 class LauncherActivity : AppCompatActivity() {
 
@@ -38,40 +34,37 @@ class LauncherActivity : AppCompatActivity() {
     }
 
     private fun loadApps() {
-        lifecycleScope.launch(Dispatchers.IO) {
-            try {
-                val pm = packageManager
-                val mainIntent = Intent(Intent.ACTION_MAIN, null)
-                mainIntent.addCategory(Intent.CATEGORY_LAUNCHER)
+        try {
+            val pm = packageManager
+            val mainIntent = Intent(Intent.ACTION_MAIN, null)
+            mainIntent.addCategory(Intent.CATEGORY_LAUNCHER)
 
-                val resolvedApps = try {
-                    pm.queryIntentActivities(mainIntent, 0)
-                } catch (e: Exception) {
-                    emptyList()
-                }
-
-                val apps = resolvedApps.mapNotNull { resolveInfo ->
-                    try {
-                        AppModel(
-                            label = resolveInfo.loadLabel(pm).toString(),
-                            packageName = resolveInfo.activityInfo.packageName,
-                            icon = runCatching { resolveInfo.loadIcon(pm) }
-                                .getOrElse { pm.defaultActivityIcon },
-                            isLocked = try {
-                                appLockManager.isLocked(resolveInfo.activityInfo.packageName)
-                            } catch (e: Exception) { false }
-                        )
-                    } catch (e: Exception) { null }
-                }.sortedBy { it.label.lowercase() }
-
-                withContext(Dispatchers.Main) {
-                    appsList.clear()
-                    appsList.addAll(apps)
-                    recyclerView.adapter = AppAdapter(appsList, this@LauncherActivity)
-                }
+            val resolvedApps = try {
+                pm.queryIntentActivities(mainIntent, 0)
             } catch (e: Exception) {
-                e.printStackTrace()
+                emptyList()
             }
+
+            val apps = resolvedApps.mapNotNull { resolveInfo ->
+                try {
+                    AppModel(
+                        label = resolveInfo.loadLabel(pm).toString(),
+                        packageName = resolveInfo.activityInfo.packageName,
+                        icon = runCatching { resolveInfo.loadIcon(pm) }
+                            .getOrElse { pm.defaultActivityIcon },
+                        isLocked = appLockManager.isLocked(
+                            resolveInfo.activityInfo.packageName
+                        )
+                    )
+                } catch (e: Exception) { null }
+            }.sortedBy { it.label.lowercase() }
+
+            appsList.clear()
+            appsList.addAll(apps)
+            recyclerView.adapter = AppAdapter(appsList, this)
+
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 
@@ -95,12 +88,10 @@ class LauncherActivity : AppCompatActivity() {
     }
 
     private fun toggleLock(app: AppModel) {
-        lifecycleScope.launch {
-            val newState = !app.isLocked
-            appLockManager.setLocked(app.packageName, newState)
-            app.isLocked = newState
-            recyclerView.adapter?.notifyDataSetChanged()
-        }
+        val newState = !app.isLocked
+        appLockManager.setLocked(app.packageName, newState)
+        app.isLocked = newState
+        recyclerView.adapter?.notifyDataSetChanged()
     }
 
     private fun openAppInfo(app: AppModel) {
