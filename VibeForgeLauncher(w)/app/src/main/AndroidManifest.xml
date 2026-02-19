@@ -9,13 +9,13 @@
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="VibeForge Launcher"
-        android:theme="@style/Theme.AppCompat">
+        android:theme="@style/Theme.Vibeforge">
 
         <activity
             android:name=".ui.LauncherActivity"
             android:exported="true"
             android:launchMode="singleTask"
-            android:theme="@style/Theme.AppCompat.NoActionBar">
+            android:theme="@style/Theme.Vibeforge">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -27,12 +27,12 @@
         <activity
             android:name=".ui.BiometricLockActivity"
             android:exported="false"
-            android:theme="@style/Theme.AppCompat.NoActionBar" />
+            android:theme="@style/Theme.Vibeforge" />
 
         <activity
             android:name=".ui.PluginsActivity"
             android:exported="false"
-            android:theme="@style/Theme.AppCompat.NoActionBar" />
+            android:theme="@style/Theme.Vibeforge" />
 
     </application>
 </manifest>
