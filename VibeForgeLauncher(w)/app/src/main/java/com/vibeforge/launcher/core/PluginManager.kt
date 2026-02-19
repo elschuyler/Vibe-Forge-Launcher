@@ -1,4 +1,3 @@
-PluginManager.kt:
 package com.vibeforge.launcher.core
 
 import android.content.Context
